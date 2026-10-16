@@ -63,6 +63,8 @@ public class SlitherAgent : Agent
     [Header("Rewards")]
     [SerializeField] float foodReward = 0.5f;
     [SerializeField] float deathPenalty = -1f;
+    [Tooltip("他のヘビが自分の体にぶつかって死んだときにもらえる報酬（0 なら無し）")]
+    [SerializeField] float killReward = 0f;
     [SerializeField] float stepPenalty = -0.001f;
     [Tooltip("この歩数エサを食べなかったらペナルティを与えて終了（ぐるぐる回り防止）")]
     [SerializeField] int maxStepsWithoutFood = 300;
@@ -143,6 +145,9 @@ public class SlitherAgent : Agent
     public override void Initialize()
     {
         // 親の Arena を優先（フィールドを複数並べて並列学習するため）
+        // 複製されたときに元のヘビの描画用オブジェクトが付いてきていたら消しておく
+        for (int i = transform.childCount - 1; i >= 0; i--) Destroy(transform.GetChild(i).gameObject);
+
         if (arena == null) arena = GetComponentInParent<SlitherArena>();
         if (arena == null) arena = FindAnyObjectByType<SlitherArena>();
         if (arena == null) arena = new GameObject("Arena").AddComponent<SlitherArena>();
@@ -354,8 +359,10 @@ public class SlitherAgent : Agent
 
         path.Insert(0, newHead);
 
-        if (HitsBody(newHead))
+        var killer = HitsBody(newHead);
+        if (killer != null)
         {
+            if (killer != this && killReward != 0f) killer.AddReward(killReward);
             Die(deathPenalty);
             return false;
         }
@@ -408,7 +415,8 @@ public class SlitherAgent : Agent
 
     bool HitsWall(Vector2 p) => p.magnitude > arena.radius - BodyRadius;
 
-    bool HitsBody(Vector2 head)
+    // ぶつかった体の持ち主を返す（ぶつかっていなければ null）
+    SlitherAgent HitsBody(Vector2 head)
     {
         foreach (var s in arena.snakes)
         {
@@ -423,9 +431,9 @@ public class SlitherAgent : Agent
             float hit2 = hit * hit;
             var p = s.Path;
             for (int j = startIndex; j < p.Count; j++)
-                if ((p[j] - head).sqrMagnitude < hit2) return true;
+                if ((p[j] - head).sqrMagnitude < hit2) return s;
         }
-        return false;
+        return null;
     }
 
     bool TooCloseToOthers(Vector2 p, float margin)

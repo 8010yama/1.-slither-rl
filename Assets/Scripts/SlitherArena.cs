@@ -5,11 +5,18 @@ using UnityEngine;
 /// スリザリオ風の円形フィールド。エサの管理と、フィールド上のヘビの一覧を持つ。
 /// この GameObject の位置がフィールドの中心になる。
 /// 座標はすべて「フィールド中心からの相対位置 (local)」で扱う。
+/// ヘビ（SlitherAgent）はこの Arena の子に置く。snakesPerArena を増やすと、
+/// 最初のヘビを複製して同じフィールドに何匹も出す（ヘビ同士がぶつかると死ぬ生存競争になる）。
 /// </summary>
+[DefaultExecutionOrder(-500)] // ヘビより先に準備する
 public class SlitherArena : MonoBehaviour
 {
     [Header("Field")]
     public float radius = 30f;
+
+    [Header("Snakes")]
+    [Tooltip("このフィールドに出すヘビの数。子にあるヘビが足りなければ、子のヘビを順番に複製して増やす")]
+    public int snakesPerArena = 1;
 
     [Header("Food")]
     [Tooltip("フィールドに常に置いておくエサの数（食べられたら補充）")]
@@ -44,6 +51,21 @@ public class SlitherArena : MonoBehaviour
         CreateCircle(transform, "Floor", backgroundColor, -1, radius * 2f).transform.localPosition = Vector3.zero;
 
         for (int i = 0; i < foodCount; i++) AddFood(RandomPoint(0.95f));
+
+        SpawnSnakes();
+    }
+
+    void SpawnSnakes()
+    {
+        var existing = GetComponentsInChildren<SlitherAgent>(true);
+        if (existing.Length == 0) return;
+        // 子に置いたヘビを順番に複製する（性格の違うヘビを並べておけば、性格ごとに同じ数ずつ増える）
+        for (int i = existing.Length; i < snakesPerArena; i++)
+        {
+            var template = existing[i % existing.Length].gameObject;
+            var clone = Instantiate(template, transform);
+            clone.name = $"{template.name} ({i})";
+        }
     }
 
     public void Register(SlitherAgent snake)

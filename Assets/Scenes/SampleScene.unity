@@ -513,7 +513,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlitherTrainingAreas
   baseArea: {fileID: 1910464789}
-  areaCount: 16
+  areaCount: 8
   spacing: 70
   onlyWhenTraining: 1
 --- !u!4 &1462620082
@@ -561,6 +561,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlitherArena
   radius: 30
+  snakesPerArena: 6
   foodCount: 200
   maxFood: 600
   foodDiameter: 0.35

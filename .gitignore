@@ -42,3 +42,7 @@
 # OS
 .DS_Store
 Thumbs.db
+
+# Unity crash recovery scenes
+/Assets/_Recovery/
+/Assets/_Recovery.meta

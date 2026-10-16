@@ -18,6 +18,37 @@
   - 画面なしのビルド版で、exeを複数同時に動かして高速に学習
 - **録画用**：途中経過のモデル（.onnx）を10万ステップごとに保存。追従カメラ付き
 
+## ブランチ
+
+実験ごとにブランチを分けています。`git switch` で切り替えれば、その実験をそのまま再現・学習できます。
+
+| ブランチ | 内容 | 学習コマンド（`Training` フォルダで実行） |
+|---|---|---|
+| `v1-single` | 1フィールドに1匹。エサ集めだけを学習（観測53） | `mlagents-learn slither_ppo.yaml --run-id=slither_v1 --env="Build\1. snake-RL.exe" --no-graphics --num-envs=4` |
+| `v2-multi` | 1フィールドに6匹。他のヘビの体にぶつかると死亡（観測53） | `mlagents-learn slither_ppo.yaml --run-id=slither_v2 --initialize-from=slither_v1 --env="Build\1. snake-RL.exe" --no-graphics --num-envs=4` |
+| `v4-personality`（= `main`） | 穏やか・攻撃的の2つの性格を同時に学習。近くの相手3匹の頭の位置・向き・大きさも観測（観測72）。豹変型は観戦時に2つのモデルを入れ替えて再現 | `mlagents-learn slither_personalities.yaml --run-id=slither_v4 --env="Build\1. snake-RL.exe" --no-graphics --num-envs=4` |
+
+**切り替えの手順**
+
+1. `git switch v2-multi` など（学習中は切り替えない）
+2. Unity に戻ってコンパイルとシーンの読み込みを待つ
+3. **Slither → Build Training Exe**（Ctrl + Alt + B）で exe を書き出し直す
+4. 上の表のコマンドで学習
+
+`Training/venv`・`Training/Build`・`Training/results` は git に入っていないので、ブランチを切り替えても共通のまま残ります。
+そのため **切り替えたら必ず exe をビルドし直す**こと、**run-id はブランチごとに分ける**ことに注意。
+学習済みモデルは各ブランチの `Assets/Models/` に入っています。
+
+## 性格（v4-personality）
+
+| 性格 | 報酬 | 学習結果（約2450万ステップ） |
+|---|---|---|
+| 穏やか（Calm） | エサ +0.5、他のヘビの体が5以内にいると毎ステップ −0.01 | 相手を避けて大きく育つ。体の長さ約170、死ぬまで約1100ステップ |
+| 攻撃的（Aggressive） | エサ +0.2、相手を自分の体にぶつけて倒すと +20、相手の進路を体でふさぐと毎ステップ +0.01 | 小さいまま突っ込む特攻型。撃破数は穏やかの約5倍、死ぬまで約220ステップ |
+| 豹変型（Switcher） | 学習はしない | 観戦時、ふだんは Calm Model、相手に近づかれる or ランダムでキレると Angry Model に入れ替わる（体が赤くなる） |
+
+共通：死亡 −1、毎ステップ −0.001。学習済みモデルは `Assets/Models/v4/`。
+
 ## フォルダ構成
 
 ```
@@ -101,7 +132,7 @@ python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 ### 6. 学習用 exe を書き出す
 
 1. **File → Build Profiles** → Windows のプロファイルが Active か確認（無ければ **Add Build Profile → Windows**）
-2. **Build** → 保存先に `Training\Build\` を選ぶ
+2. メニューの **Slither → Build Training Exe**（Ctrl + Alt + B）を押す。シーンを保存して `Training\Build\` に書き出す
 3. `Training\Build\1. snake-RL.exe` ができれば OK
 
 スクリプトやシーンを変えたら、毎回書き出し直す。

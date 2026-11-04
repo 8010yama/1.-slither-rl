@@ -1,7 +1,5 @@
 # CI でプロジェクトを確認するのに使う（ci/check_project.py）
-# 学習と同じ版の ML-Agents で設定ファイルを読むため、PyTorch も入れる（CPU 版で十分）
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.8.0
+# PyTorch（CPU 版）は、ワークフローの中で先に入れる。学習と同じ版の ML-Agents で設定ファイルを読む
 mlagents==1.1.0
 # mlagents 1.1.0 が使う pkg_resources は、新しい setuptools にはない
 setuptools<70

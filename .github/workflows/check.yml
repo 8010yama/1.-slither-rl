@@ -19,10 +19,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.10"
-          cache: pip
-          cache-dependency-path: ci/requirements.txt
       - name: ML-Agents を入れる
-        # mlagents 1.1.0 は Python 3.10.12 までと書いてあるが、それより新しい 3.10 でも動くので、その制限だけ外す
-        run: pip install --ignore-requires-python -r ci/requirements.txt
+        # mlagents 1.1.0 は「Python 3.10.12 まで」と書いてあり、今の 3.10 だと pip が断る。
+        # pip の --ignore-requires-python は全パッケージの版の確認を外してしまう（3.10 非対応の Pillow を
+        # ソースからビルドしようとして失敗した）ので、上限だけを気にしない uv で入れる
+        run: |
+          pip install uv
+          uv pip install --system torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system -r ci/requirements.txt
       - name: 確認する
         run: python ci/check_project.py

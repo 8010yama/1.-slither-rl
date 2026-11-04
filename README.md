@@ -1,5 +1,7 @@
 # Slither RL
 
+[![check](https://github.com/8010yama/1.-slither-rl/actions/workflows/check.yml/badge.svg)](https://github.com/8010yama/1.-slither-rl/actions/workflows/check.yml)
+
 スリザリオ風のヘビを、Unity ML-Agents の強化学習で育てるプロジェクトです。
 
 ## できること
@@ -70,6 +72,7 @@ Training/
   README.md                  学習コマンドと TensorBoard の見方
   venv/  Build/  results/    ← 各PCで作る。git には入れない
 docs/                        README の図
+ci/check_project.py          CI で使う確認（Unity なし）
 ```
 
 ## 動作環境
@@ -183,6 +186,17 @@ tensorboard --logdir results
 - 1エピソード最大 5000 ステップ（時間切れは失敗扱いにしない）
 
 数値の多くは Inspector から変更できます。
+
+## CI
+
+push のたびに、GitHub Actions（[`.github/workflows/check.yml`](.github/workflows/check.yml)）で、Unity を起動せずにできる確認を [`ci/check_project.py`](ci/check_project.py) で行っています。
+
+- **学習済みモデルとシーンが合っているか**：`.onnx` の観測の数と行動の形を、シーンの Behavior Parameters と比べる。観測を変えたのに古いモデルのまま、という食い違いを見つける
+- **シーンが使っているモデルがあるか**：`m_Model`・`calmModel`・`angryModel` が指すモデルが、リポジトリに入っているか
+- **学習の設定が正しいか**：`Training/*.yaml` を学習と同じ版の ML-Agents（1.1.0）で読み込み、項目名の書き間違いなどを見つける
+- **Unity の `.meta` ファイル**：アセットと `.meta` がペアで入っているか
+
+手元で確かめるときは、`Training` の venv を有効にして、リポジトリの一番上で `python ci/check_project.py` を実行します。
 
 ## ライセンス
 

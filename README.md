@@ -48,6 +48,10 @@
 
 共通：死亡 −1、毎ステップ −0.001。学習済みモデルは `Assets/Models/v4/`。
 
+報酬を変えるだけで、同じ観測・同じネットワークから、まったく違う戦い方が育ちました。穏やかは相手を避けて長く生き残り、体を大きくしていきます。攻撃的は体を伸ばさずに相手を倒しにいき、撃破数は穏やかの約5倍になります。
+
+![性格ごとの学習曲線](docs/learning_curves_v4.png)
+
 ## フォルダ構成
 
 ```
@@ -58,10 +62,14 @@ Assets/
     SlitherCamera.cs         頭を追いかけるカメラ（長くなるとズームアウト）
     SlitherTrainingAreas.cs  学習中だけフィールドを複製して並べる
   Scenes/SampleScene.unity   使用シーン
+  Models/v4/                 学習済みモデル（.onnx）
+  Editor/SlitherBuildMenu.cs 学習用 exe を書き出すメニュー（Slither → Build Training Exe）
 Training/
-  slither_ppo.yaml           学習設定
-  README.md                  学習コマンドの詳細（英語）
+  slither_ppo.yaml           学習設定（1種類）
+  slither_personalities.yaml 学習設定（穏やか・攻撃的の2種類）
+  README.md                  学習コマンドと TensorBoard の見方
   venv/  Build/  results/    ← 各PCで作る。git には入れない
+docs/                        README の図
 ```
 
 ## 動作環境
@@ -175,3 +183,7 @@ tensorboard --logdir results
 - 1エピソード最大 5000 ステップ（時間切れは失敗扱いにしない）
 
 数値の多くは Inspector から変更できます。
+
+## ライセンス
+
+[MIT](LICENSE)

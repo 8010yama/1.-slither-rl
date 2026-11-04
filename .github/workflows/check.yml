@@ -1,0 +1,28 @@
+# push・Pull Request のたびに、Unity を起動せずにできる確認をする（ci/check_project.py）
+#   - Unity の .meta ファイルの抜け・残り
+#   - 学習済みモデル（.onnx）の観測・行動の形が、シーンの設定と合っているか
+#   - シーンが使っているモデルが、リポジトリにあるか
+#   - 学習の設定（Training/*.yaml）を、学習と同じ版の ML-Agents が読めるか
+name: check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: プロジェクトの確認（Unity なし）
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: ci/requirements.txt
+      - name: ML-Agents を入れる
+        # mlagents 1.1.0 は Python 3.10.12 までと書いてあるが、それより新しい 3.10 でも動くので、その制限だけ外す
+        run: pip install --ignore-requires-python -r ci/requirements.txt
+      - name: 確認する
+        run: python ci/check_project.py
